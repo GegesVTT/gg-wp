@@ -1,0 +1,66 @@
+/* GGWP · gg-wp.css — tokens de marca de la suite + chrome mínimo. */
+
+@import url('https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  /* Chrome de UI (ggse-ui) */
+  --ggwp-roble: #19120D;
+  --ggwp-ambar: #E0A23C;
+  /* Marca canónica */
+  --ggwp-oro:   #e3ad4b;
+  --ggwp-vino:  #8A2F3F;
+  --ggwp-teal:  #00252C;
+  --ggwp-papel: #FBF7EE;
+  /* Tipografías (OFL) */
+  --ggwp-font-title: 'Uncial Antiqua', serif;
+  --ggwp-font-body:  'Cormorant Garamond', serif;
+}
+
+/* Ícono del control GGWP: silueta del laúd como máscara → se tinta con el
+   color de estado (activo/inactivo) que Foundry aplica al <i>. */
+i.ggwp-lute {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask: url("../assets/lute-glyph.svg") no-repeat center / contain;
+          mask: url("../assets/lute-glyph.svg") no-repeat center / contain;
+}
+i.ggwp-lute::before { content: ""; } /* neutraliza cualquier glifo de fuente heredado */
+
+.ggwp-about {
+  font-family: var(--ggwp-font-body);
+  line-height: 1.4;
+}
+
+.ggwp-about h2 {
+  font-family: var(--ggwp-font-title);
+  color: var(--ggwp-vino);
+  margin: 0 0 0.4em;
+  border: none;
+}
+
+.ggwp-about h3 {
+  font-family: var(--ggwp-font-title);
+  color: var(--ggwp-roble);
+  font-size: 1.05em;
+  margin: 0.8em 0 0.3em;
+  border: none;
+}
+
+.ggwp-about ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.ggwp-about a {
+  color: var(--ggwp-vino);
+  font-weight: 600;
+}
+
+.ggwp-about .ggwp-dim {
+  color: var(--ggwp-roble);
+  opacity: 0.65;
+  font-size: 0.9em;
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="laúd">
+  <!--
+    PLACEHOLDER · silueta monocroma del laúd para el botón de scene-controls.
+    Se usa como máscara CSS (i.ggwp-lute), así el glifo se tinta con currentColor
+    y toma el color de estado activo/inactivo de Foundry.
+    Reemplazá el <g> por la SILUETA de tu TukiRecurso_9.svg (un solo tono, sin
+    los colores; ideal: los paths cls-2 de los cuerpos de las G unificados).
+  -->
+  <g fill="#1d1d1b">
+    <!-- cuerpo (bowl del laúd) -->
+    <ellipse cx="8.6" cy="15.4" rx="6" ry="6.3"/>
+    <!-- mástil diagonal -->
+    <rect x="12.2" y="3" width="2.6" height="14" rx="1.3" transform="rotate(45 13.5 10)"/>
+    <!-- clavijero -->
+    <rect x="17" y="3.3" width="3.1" height="3.4" rx="0.8" transform="rotate(45 18.5 5)"/>
+  </g>
+</svg>
