@@ -16,9 +16,11 @@
   --ggwp-font-body:  'Cormorant Garamond', serif;
 }
 
-/* Ícono del control GGWP: silueta del laúd como máscara → se tinta con el
-   color de estado (activo/inactivo) que Foundry aplica al <i>. */
-i.ggwp-lute {
+/* Ícono del control GGWP: silueta del laúd como máscara en ::before
+   (mismo mecanismo que FontAwesome), se tinta con currentColor y toma el
+   color de estado activo/inactivo que Foundry aplica al ícono. */
+.ggwp-lute::before {
+  content: "";
   display: inline-block;
   width: 1em;
   height: 1em;
@@ -27,7 +29,6 @@ i.ggwp-lute {
   -webkit-mask: url("../assets/lute-glyph.svg") no-repeat center / contain;
           mask: url("../assets/lute-glyph.svg") no-repeat center / contain;
 }
-i.ggwp-lute::before { content: ""; } /* neutraliza cualquier glifo de fuente heredado */
 
 .ggwp-about {
   font-family: var(--ggwp-font-body);

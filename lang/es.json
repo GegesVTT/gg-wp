@@ -5,5 +5,7 @@
   "GGWP.about.packs": "Content-packs",
   "GGWP.about.noPacks": "Todavía no hay content-packs registrados.",
   "GGWP.about.buy": "Comprar",
-  "GGWP.about.close": "Cerrar"
+  "GGWP.about.close": "Cerrar",
+  "GGWP.about.modules": "Módulos de la suite",
+  "GGWP.about.noModules": "No hay módulos de la suite activos."
 }

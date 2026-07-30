@@ -17,8 +17,27 @@ function t(key, fallback) {
   return (s && s !== key) ? s : fallback;
 }
 
+/** Módulos de la suite (gg-*) instalados y activos, salvo el propio gg-wp. */
+function activeSuiteModules() {
+  const out = [];
+  const mods = game?.modules;
+  const iter = mods?.values?.() ?? mods ?? [];
+  for (const m of iter) {
+    if (!m?.active) continue;
+    const id = m.id ?? m.identifier ?? "";
+    if (!id.startsWith("gg-") || id === MODULE_ID) continue;
+    out.push({ title: m.title ?? id, version: m.version ?? "" });
+  }
+  return out.sort((a, b) => a.title.localeCompare(b.title));
+}
+
 function buildContent(packRegistry) {
   const packs = packRegistry?.all?.() ?? [];
+
+  const mods = activeSuiteModules();
+  const modRows = mods.length
+    ? mods.map((m) => `<li><b>${esc(m.title)}</b>${m.version ? ` <span class="ggwp-dim">v${esc(m.version)}</span>` : ""}</li>`).join("")
+    : `<li><i>${t("GGWP.about.noModules", "No hay módulos de la suite activos.")}</i></li>`;
 
   const rows = packs.length
     ? packs.map((p) => {
@@ -34,6 +53,8 @@ function buildContent(packRegistry) {
     <section class="ggwp-about">
       <h2>Crónicas Bárdicas</h2>
       <p>${t("GGWP.about.tagline", "Suite de módulos GegesVTT para Foundry VTT.")}</p>
+      <h3>${t("GGWP.about.modules", "Módulos de la suite")}</h3>
+      <ul>${modRows}</ul>
       <h3>${t("GGWP.about.packs", "Content-packs")}</h3>
       <ul>${rows}</ul>
     </section>`;
