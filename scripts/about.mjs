@@ -17,24 +17,16 @@ function t(key, fallback) {
   return (s && s !== key) ? s : fallback;
 }
 
-/** Módulos de la suite (gg-*) instalados y activos, salvo el propio gg-wp. */
-function activeSuiteModules() {
-  const out = [];
-  const mods = game?.modules;
-  const iter = mods?.values?.() ?? mods ?? [];
-  for (const m of iter) {
-    if (!m?.active) continue;
-    const id = m.id ?? m.identifier ?? "";
-    if (!id.startsWith("gg-") || id === MODULE_ID) continue;
-    out.push({ title: m.title ?? id, version: m.version ?? "" });
-  }
-  return out.sort((a, b) => a.title.localeCompare(b.title));
-}
-
-function buildContent(packRegistry) {
+/**
+ * @param {import("./content-packs.mjs").ContentPackRegistry} packRegistry
+ * @param {import("./suite.mjs").SuiteRegistry} suiteRegistry
+ */
+function buildContent(packRegistry, suiteRegistry) {
   const packs = packRegistry?.all?.() ?? [];
 
-  const mods = activeSuiteModules();
+  // Membresía por REGISTRO EXPLÍCITO. Antes se barría por prefijo "gg-", lo que
+  // metía themes de tarjeta y módulos ajenos en la lista de la suite.
+  const mods = suiteRegistry?.active?.() ?? [];
   const modRows = mods.length
     ? mods.map((m) => `<li><b>${esc(m.title)}</b>${m.version ? ` <span class="ggwp-dim">v${esc(m.version)}</span>` : ""}</li>`).join("")
     : `<li><i>${t("GGWP.about.noModules", "No hay módulos de la suite activos.")}</i></li>`;
@@ -63,9 +55,10 @@ function buildContent(packRegistry) {
 /**
  * Abre el diálogo Acerca de.
  * @param {import("./content-packs.mjs").ContentPackRegistry} packRegistry
+ * @param {import("./suite.mjs").SuiteRegistry} [suiteRegistry]
  */
-export async function openAboutDialog(packRegistry) {
-  const content = buildContent(packRegistry);
+export async function openAboutDialog(packRegistry, suiteRegistry) {
+  const content = buildContent(packRegistry, suiteRegistry);
   const title = "GGWP · Crónicas Bárdicas";
   const closeLabel = t("GGWP.about.close", "Cerrar");
 

@@ -22,9 +22,14 @@
 .ggwp-lute::before {
   content: "";
   display: inline-block;
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.125em;
+  /* 1.3em y no 1em: el glifo es ancho (627 x 398 tras el recorte del viewBox),
+     asi que con `contain` la altura util queda por debajo del ancho de la caja.
+     Agrandar el cuadro compensa y el laud pesa como un icono de FontAwesome.
+     Sin overrides por contenedor: dimensionar el ::before contra un padre que
+     se mide por su contenido da 0 y el icono desaparece. */
+  width: 1.3em;
+  height: 1.3em;
+  vertical-align: -0.26em;
   background-color: currentColor;
   -webkit-mask: url("../assets/lute-glyph.svg") no-repeat center / contain;
           mask: url("../assets/lute-glyph.svg") no-repeat center / contain;

@@ -6,6 +6,9 @@
  *  - getSceneControlButtons pasa un RECORD (no un array) → se asigna controls[name].
  *  - Un control o tool SIN onChange tira TypeError → onChange garantizado en todos.
  *  - Una capa de tools VACÍA crashea en v14 → siempre hay al menos el tool "Acerca de".
+ *  - Foundry invoca el onChange del `activeTool` al ACTIVAR el grupo, sin evento
+ *    de usuario. Para tools de acción (button: true) eso significa que la acción
+ *    se dispara sola cada vez que entrás a la sección. Ver GUARD más abajo.
  */
 
 import { openAboutDialog } from "./about.mjs";
@@ -52,12 +55,36 @@ export class ToolRegistry {
   }
 }
 
+/**
+ * GUARD DE ACTIVACIÓN.
+ *
+ * Foundry dispara el onChange del activeTool cuando el grupo se activa, no solo
+ * cuando el usuario hace clic. Para una tool de acción eso es un bug visible:
+ * "Acerca de" se abría solo al entrar a la sección, y lo mismo le pasaría a
+ * cualquier satélite que quedara primero en el orden.
+ *
+ * Un clic real trae un Event; la activación programática no. Envolvemos toda
+ * tool de acción para que solo corra ante un evento de usuario.
+ *
+ * Los toggles quedan afuera: para ellos onChange(event, active) sí es legítimo
+ * durante la activación.
+ */
+function guardAction(fn, { isToggle }) {
+  if (typeof fn !== "function") return NOOP;
+  if (isToggle) return fn;
+  return function (event, ...rest) {
+    if (!event) return; // activación de capa, no clic → no hacemos nada
+    return fn.call(this, event, ...rest);
+  };
+}
+
 /** Normaliza una lista de tools al record que espera v13+, con onChange garantizado. */
 function toToolRecord(list) {
   const rec = {};
   let order = 0;
   for (const tool of list) {
     if (!tool?.name) continue;
+    const isToggle = tool.toggle ?? false;
     rec[tool.name] = {
       name: tool.name,
       order: tool.order ?? order++,
@@ -65,9 +92,9 @@ function toToolRecord(list) {
       icon: tool.icon ?? "fas fa-circle",
       visible: tool.visible ?? true,
       button: tool.button ?? true,
-      toggle: tool.toggle ?? false,
+      toggle: isToggle,
       active: tool.active ?? false,
-      onChange: typeof tool.onChange === "function" ? tool.onChange : NOOP
+      onChange: guardAction(tool.onChange, { isToggle })
     };
   }
   return rec;
@@ -78,22 +105,53 @@ function toToolRecord(list) {
  * @param {Record<string, object>|Array} controls
  * @param {ToolRegistry} toolRegistry
  * @param {import("./content-packs.mjs").ContentPackRegistry} packRegistry
+ * @param {import("./suite.mjs").SuiteRegistry} suiteRegistry
  */
-export function registerGGWPControls(controls, toolRegistry, packRegistry) {
+export function registerGGWPControls(controls, toolRegistry, packRegistry, suiteRegistry) {
   try {
-    // Tool built-in que garantiza que la sección nunca quede vacía (crash v14).
+    // Los satélites van primero; "Acerca de" cierra la lista, como en cualquier
+    // menú donde la información va al final.
     const aboutTool = {
       name: "gg-wp-about",
       title: t("GGWP.controls.about", "Acerca de la suite"),
       icon: "fas fa-circle-info",
-      order: -1,
+      order: 999,
       button: true,
-      onChange: () => openAboutDialog(packRegistry)
+      onChange: () => openAboutDialog(packRegistry, suiteRegistry)
     };
 
-    const toolsRecord = toToolRecord([aboutTool, ...toolRegistry.all()]);
-    const firstTool = Object.keys(toolsRecord)[0];
-    if (!firstTool) return; // salvaguarda extra; en la práctica siempre está "about".
+    // ANCLA DE CAPA.
+    //
+    // Foundry activa el `activeTool` al entrar a la sección, y si ese tool es
+    // de acción (button: true) ejecuta su acción. Por eso "Acerca de" se abría
+    // solo — y lo mismo le pasaría a cualquier satélite que quedara primero.
+    //
+    // La solución es que el activeTool NO sea de acción: este tool es el estado
+    // neutro de la capa. Se ve como el laúd de la suite y no hace nada.
+    const homeTool = {
+      name: "gg-wp-home",
+      title: t("GGWP.controls.title", "Crónicas Bárdicas"),
+      icon: "ggwp-lute",
+      order: -1,
+      button: false, // ← clave: tool de modo, no de acción
+      toggle: false,
+      onChange: NOOP
+    };
+
+    const satellites = toolRegistry.all();
+    const toolsRecord = toToolRecord([homeTool, ...satellites, aboutTool]);
+
+    // La capa nunca queda vacía (crash en v14): "Acerca de" siempre está.
+    const names = Object.keys(toolsRecord);
+    if (!names.length) return;
+
+    // activeTool: SIEMPRE un tool de modo, nunca uno de acción. El ancla es de
+    // modo por construcción; el reduce queda como red por si algún día se
+    // registra otro tool de modo con order menor.
+    const modeTools = names.filter((n) => !toolsRecord[n].button);
+    const candidatos = modeTools.length ? modeTools : names;
+    const activeTool = candidatos.reduce((a, b) =>
+      (toolsRecord[a].order <= toolsRecord[b].order ? a : b));
 
     const control = {
       name: MODULE_ID,
@@ -102,7 +160,7 @@ export function registerGGWPControls(controls, toolRegistry, packRegistry) {
       order: 90,
       visible: true,
       tools: toolsRecord,
-      activeTool: firstTool,
+      activeTool,
       onChange: NOOP // requerido en v13+
     };
 
